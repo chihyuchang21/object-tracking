@@ -6,15 +6,18 @@ tracker = EuclideanDistTracker()
 
 cap = cv2.VideoCapture("object_tracking/highway.mp4")
 
-# Object detection from Stable camera
+# Object detection from a stable camera
 object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=40)
 
 while True:
     ret, frame = cap.read()
+    if not ret:
+        break  # Break the loop if there are no more frames to read
+
     height, width, _ = frame.shape
 
-    # Extract Region of interest
-    roi = frame[340: 720,500: 800]
+    # Extract Region of Interest (ROI)
+    roi = frame[340:720, 500:800]
 
     # 1. Object Detection
     mask = object_detector.apply(roi)
@@ -25,10 +28,7 @@ while True:
         # Calculate area and remove small elements
         area = cv2.contourArea(cnt)
         if area > 100:
-            #cv2.drawContours(roi, [cnt], -1, (0, 255, 0), 2)
             x, y, w, h = cv2.boundingRect(cnt)
-
-
             detections.append([x, y, w, h])
 
     # 2. Object Tracking
@@ -38,12 +38,13 @@ while True:
         cv2.putText(roi, str(id), (x, y - 15), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
         cv2.rectangle(roi, (x, y), (x + w, y + h), (0, 255, 0), 3)
 
-    cv2.imshow("roi", roi)
+    # Display the frames
+    cv2.imshow("ROI", roi)
     cv2.imshow("Frame", frame)
     cv2.imshow("Mask", mask)
 
     key = cv2.waitKey(30)
-    if key == 27:
+    if key == 27:   # Press ESC to break the loop
         break
 
 cap.release()
